@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Law of Indices Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        #quiz-container {
+            background-color: #2d3748;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            width: 95%;
+            max-width: 700px;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #63b3ed;
+        }
+        .question-block {
+            background-color: #4a5568;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .question-text {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+        .options-container label {
+            display: block;
+            background-color: #2d3748;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            color: #e2e8f0;
+        }
+        .options-container input[type="radio"] {
+            margin-right: 0.75rem;
+            accent-color: #63b3ed; /* Highlight radio button */
+        }
+        #navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+        .quiz-button {
+            background-image: linear-gradient(to right, #63b3ed, #4299e1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.06);
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+        .quiz-button:hover {
+            background-image: linear-gradient(to right, #4299e1, #3182ce);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15), 0 3px 5px -1px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        .quiz-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .quiz-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #4a5568;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #results-summary {
+            display: none;
+            margin-top: 2rem;
+            background-color: #4a5568;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+        #results-summary h2 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #48bb78;
+        }
+        .result-item {
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .result-question {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #cbd5e0;
+        }
+        .user-answer, .correct-answer, .rationale {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        .correct {
+            color: #48bb78; /* Green */
+        }
+        .incorrect {
+            color: #fc8181; /* Light Red */
+        }
+        .print-button-container {
+            text-align: center;
+            margin-top: 2rem;
+            display: flex; /* Use flexbox for buttons */
+            justify-content: center; /* Center buttons */
+            gap: 1rem; /* Space between buttons */
+        }
+
+        /* Immediate Feedback Styles */
+        .feedback-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .feedback-correct {
+            background-color: #2f855a; /* Darker green */
+            color: #e2e8f0;
+        }
+        .feedback-incorrect {
+            background-color: #c53030; /* Darker red */
+            color: #e2e8f0;
+        }
+        .feedback-rationale {
+            font-weight: normal;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            color: #cbd5e0;
+        }
+
+        /* Highlight selected/correct answers */
+        .options-container label.selected {
+            border: 2px solid #63b3ed;
+        }
+        .options-container label.correct-highlight {
+            background-color: #48bb78; /* Green for correct */
+            color: #fff;
+        }
+        .options-container label.incorrect-highlight {
+            background-color: #e53e3e; /* Red for incorrect */
+            color: #fff;
+        }
+
+
+        /* Styles for Print */
+        @media print {
+            body {
+                background-color: #fff;
+                color: #000;
+                display: block;
+                margin: 0;
+                padding: 1rem;
+            }
+            #quiz-container {
+                display: none; /* Hide the interactive quiz */
+            }
+            #results-summary {
+                display: block !important; /* Show the summary for printing */
+                background-color: #fff;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
+            #results-summary h2 {
+                color: #000;
+                font-size: 2rem;
+            }
+            .result-item {
+                background-color: #f0f0f0;
+                border: 1px solid #ddd;
+            }
+            .result-question, .user-answer, .correct-answer, .rationale {
+                color: #000;
+            }
+            .print-button-container {
+                display: none; /* Hide the print button itself */
+            }
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            #quiz-container {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .question-text {
+                font-size: 1rem;
+            }
+            .options-container label {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .quiz-button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            #results-summary h2 {
+                font-size: 1.5rem;
+            }
+            .print-button-container {
+                flex-direction: column; /* Stack buttons vertically on mobile */
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <h1>Indices Quiz</h1>
+        <div id="question-area">
+            </div>
+        <div id="navigation-buttons">
+            <button id="prevButton" class="quiz-button" disabled>Previous</button>
+            <button id="nextButton" class="quiz-button">Next</button>
+            <button id="retryQuizButton" class="quiz-button hidden">Retry Quiz</button>
+        </div>
+
+        <div id="results-summary">
+            <h2 id="overall-score"></h2>
+            <div id="summary-content">
+                </div>
+            <div class="print-button-container">
+                <button id="downloadPdfButton" class="quiz-button">Download Results as PDF</button>
+                <button id="retryQuizButtonBottom" class="quiz-button">Retry Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz questions data for "Law of Indices Quiz"
+        const originalQuizQuestions = [
+            {
+                question: "What is the value of \\(2^3\\)?",
+                correctAnswer: "8",
+                options: [
+                    { text: "6", isCorrect: false, rationale: "Incorrect. \\(2^3\\) means \\(2\\times2\\times2\\), which is not 6." },
+                    { text: "8", isCorrect: true, rationale: "Correct! \\(2^3=8\\)." },
+                    { text: "9", isCorrect: false, rationale: "Incorrect. \\(2^3\\) means \\(2\\times2\\times2\\), which is not 9." },
+                    { text: "12", isCorrect: false, rationale: "Incorrect. \\(2^3\\) means \\(2\\times2\\times2\\), which is not 12." }
+                ]
+            },
+            {
+                question: "Simplify \\(5^0\\).",
+                correctAnswer: "1",
+                options: [
+                    { text: "0", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." },
+                    { text: "1", isCorrect: true, rationale: "Correct! \\(5^0=1\\)." },
+                    { text: "5", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." },
+                    { text: "10", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." }
+                ]
+            },
+            {
+                question: "What is the value of \\(3^2\\)?",
+                correctAnswer: "9",
+                options: [
+                    { text: "6", isCorrect: false, rationale: "Incorrect. \\(3^2\\) means \\(3\\times3\\), which is not 6." },
+                    { text: "9", isCorrect: true, rationale: "Correct! \\(3^2=9\\)." },
+                    { text: "12", isCorrect: false, rationale: "Incorrect. \\(3^2\\) means \\(3\\times3\\), which is not 12." },
+                    { text: "15", isCorrect: false, rationale: "Incorrect. \\(3^2\\) means \\(3\\times3\\), which is not 15." }
+                ]
+            },
+            {
+                question: "Simplify \\(4^{-1}\\).",
+                correctAnswer: "0.25",
+                options: [
+                    { text: "-4", isCorrect: false, rationale: "Incorrect. \\(4^{-1}\\) means \\(1/4\\), which is not -4." },
+                    { text: "0.25", isCorrect: true, rationale: "Correct! \\(4^{-1}=0.25\\)." },
+                    { text: "4", isCorrect: false, rationale: "Incorrect. \\(4^{-1}\\) means \\(1/4\\), which is not 4." },
+                    { text: "-0.25", isCorrect: false, rationale: "Incorrect. \\(4^{-1}\\) means \\(1/4\\), which is not -0.25." }
+                ]
+            },
+            {
+                question: "What is the value of \\(10^2\\)?",
+                correctAnswer: "100",
+                options: [
+                    { text: "20", isCorrect: false, rationale: "Incorrect. \\(10^2\\) means \\(10\\times10\\), which is not 20." },
+                    { text: "50", isCorrect: false, rationale: "Incorrect. \\(10^2\\) means \\(10\\times10\\), which is not 50." },
+                    { text: "100", isCorrect: true, rationale: "Correct! \\(10^2=100\\)." },
+                    { text: "200", isCorrect: false, rationale: "Incorrect. \\(10^2\\) means \\(10\\times10\\), which is not 200." }
+                ]
+            },
+            {
+                question: "Simplify \\(7^1\\).",
+                correctAnswer: "7",
+                options: [
+                    { text: "1", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 1 is the number itself." },
+                    { text: "7", isCorrect: true, rationale: "Correct! \\(7^1=7\\)." },
+                    { text: "14", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 1 is the number itself." },
+                    { text: "49", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 1 is the number itself." }
+                ]
+            },
+            {
+                question: "What is the value of \\(6^2\\)?",
+                correctAnswer: "36",
+                options: [
+                    { text: "12", isCorrect: false, rationale: "Incorrect. \\(6^2\\) means \\(6\\times6\\), which is not 12." },
+                    { text: "18", isCorrect: false, rationale: "Incorrect. \\(6^2\\) means \\(6\\times6\\), which is not 18." },
+                    { text: "36", isCorrect: true, rationale: "Correct! \\(6^2=36\\)." },
+                    { text: "42", isCorrect: false, rationale: "Incorrect. \\(6^2\\) means \\(6\\times6\\), which is not 42." }
+                ]
+            },
+            {
+                question: "Simplify \\(2^{-2}\\).",
+                correctAnswer: "0.25",
+                options: [
+                    { text: "-4", isCorrect: false, rationale: "Incorrect. \\(2^{-2}\\) means \\(1/(2^2)\\), which is not -4." },
+                    { text: "0.25", isCorrect: true, rationale: "Correct! \\(2^{-2}=0.25\\)." },
+                    { text: "4", isCorrect: false, rationale: "Incorrect. \\(2^{-2}\\) means \\(1/(2^2)\\), which is not 4." },
+                    { text: "-0.25", isCorrect: false, rationale: "Incorrect. \\(2^{-2}\\) means \\(1/(2^2)\\), which is not -0.25." }
+                ]
+            },
+            {
+                question: "What is the value of \\(8^0\\)?",
+                correctAnswer: "1",
+                options: [
+                    { text: "0", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." },
+                    { text: "1", isCorrect: true, rationale: "Correct! \\(8^0=1\\)." },
+                    { text: "8", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." },
+                    { text: "64", isCorrect: false, rationale: "Incorrect. Any number raised to the power of 0 is 1." }
+                ]
+            },
+            {
+                question: "Simplify \\(9^2\\).",
+                correctAnswer: "81",
+                options: [
+                    { text: "18", isCorrect: false, rationale: "Incorrect. \\(9^2\\) means \\(9\\times9\\), which is not 18." },
+                    { text: "27", isCorrect: false, rationale: "Incorrect. \\(9^2\\) means \\(9\\times9\\), which is not 27." },
+                    { text: "81", isCorrect: true, rationale: "Correct! \\(9^2=81\\)." },
+                    { text: "99", isCorrect: false, rationale: "Incorrect. \\(9^2\\) means \\(9\\times9\\), which is not 99." }
+                ]
+            },
+            {
+                question: "What is the value of \\(5^3\\)?",
+                correctAnswer: "125",
+                options: [
+                    { text: "15", isCorrect: false, rationale: "Incorrect. \\(5^3\\) means \\(5\\times5\\times5\\), which is not 15." },
+                    { text: "25", isCorrect: false, rationale: "Incorrect. \\(5^3\\) means \\(5\\times5\\times5\\), which is not 25." },
+                    { text: "75", isCorrect: false, rationale: "Incorrect. \\(5^3\\) means \\(5\\times5\\times5\\), which is not 75." },
+                    { text: "125", isCorrect: true, rationale: "Correct! \\(5^3=125\\)." }
+                ]
+            },
+            {
+                question: "Simplify \\(3^{-1}\\).",
+                correctAnswer: "0.33",
+                options: [
+                    { text: "-3", isCorrect: false, rationale: "Incorrect. \\(3^{-1}\\) means \\(1/3\\), which is not -3." },
+                    { text: "0.33", isCorrect: true, rationale: "Correct! \\(3^{-1}=0.33\\)." },
+                    { text: "3", isCorrect: false, rationale: "Incorrect. \\(3^{-1}\\) means \\(1/3\\), which is not 3." },
+                    { text: "-0.33", isCorrect: false, rationale: "Incorrect. \\(3^{-1}\\) means \\(1/3\\), which is not -0.33." }
+                ]
+            },
+            {
+                question: "What is the value of \\(4^3\\)?",
+                correctAnswer: "64",
+                options: [
+                    { text: "12", isCorrect: false, rationale: "Incorrect. \\(4^3\\) means \\(4\\times4\\times4\\), which is not 12." },
+                    { text: "24", isCorrect: false, rationale: "Incorrect. \\(4^3\\) means \\(4\\times4\\times4\\), which is not 24." },
+                    { text: "64", isCorrect: true, rationale: "Correct! \\(4^3=64\\)." },
+                    { text: "128", isCorrect: false, rationale: "Incorrect. \\(4^3\\) means \\(4\\times4\\times4\\), which is not 128." }
+                ]
+            },
+            {
+                question: "Simplify \\(2^4\\).",
+                correctAnswer: "16",
+                options: [
+                    { text: "8", isCorrect: false, rationale: "Incorrect. \\(2^4\\) means \\(2\\times2\\times2\\times2\\), which is not 8." },
+                    { text: "16", isCorrect: true, rationale: "Correct! \\(2^4=16\\)." },
+                    { text: "32", isCorrect: false, rationale: "Incorrect. \\(2^4\\) means \\(2\\times2\\times2\\times2\\), which is not 32." },
+                    { text: "64", isCorrect: false, rationale: "Incorrect. \\(2^4\\) means \\(2\\times2\\times2\\times2\\), which is not 64." }
+                ]
+            },
+            {
+                question: "What is the value of \\(7^2\\)?",
+                correctAnswer: "49",
+                options: [
+                    { text: "14", isCorrect: false, rationale: "Incorrect. \\(7^2\\) means \\(7\\times7\\), which is not 14." },
+                    { text: "21", isCorrect: false, rationale: "Incorrect. \\(7^2\\) means \\(7\\times7\\), which is not 21." },
+                    { text: "49", isCorrect: true, rationale: "Correct! \\(7^2=49\\)." },
+                    { text: "63", isCorrect: false, rationale: "Incorrect. \\(7^2\\) means \\(7\\times7\\), which is not 63." }
+                ]
+            },
+            {
+                question: "Simplify \\(10^{-1}\\).",
+                correctAnswer: "0.1",
+                options: [
+                    { text: "-10", isCorrect: false, rationale: "Incorrect. \\(10^{-1}\\) means \\(1/10\\), which is not -10." },
+                    { text: "0.1", isCorrect: true, rationale: "Correct! \\(10^{-1}=0.1\\)." },
+                    { text: "10", isCorrect: false, rationale: "Incorrect. \\(10^{-1}\\) means \\(1/10\\), which is not 10." },
+                    { text: "-0.1", isCorrect: false, rationale: "Incorrect. \\(10^{-1}\\) means \\(1/10\\), which is not -0.1." }
+                ]
+            },
+            {
+                question: "What is the value of \\(6^3\\)?",
+                correctAnswer: "216",
+                options: [
+                    { text: "18", isCorrect: false, rationale: "Incorrect. \\(6^3\\) means \\(6\\times6\\times6\\), which is not 18." },
+                    { text: "36", isCorrect: false, rationale: "Incorrect. \\(6^3\\) means \\(6\\times6\\times6\\), which is not 36." },
+                    { text: "108", isCorrect: false, rationale: "Incorrect. \\(6^3\\) means \\(6\\times6\\times6\\), which is not 108." },
+                    { text: "216", isCorrect: true, rationale: "Correct! \\(6^3=216\\)." }
+                ]
+            },
+            {
+                question: "Simplify \\(5^2\\).",
+                correctAnswer: "25",
+                options: [
+                    { text: "10", isCorrect: false, rationale: "Incorrect. \\(5^2\\) means \\(5\\times5\\), which is not 10." },
+                    { text: "25", isCorrect: true, rationale: "Correct! \\(5^2=25\\)." },
+                    { text: "50", isCorrect: false, rationale: "Incorrect. \\(5^2\\) means \\(5\\times5\\), which is not 50." },
+                    { text: "75", isCorrect: false, rationale: "Incorrect. \\(5^2\\) means \\(5\\times5\\), which is not 75." }
+                ]
+            },
+            {
+                question: "What is the value of \\(3^4\\)?",
+                correctAnswer: "81",
+                options: [
+                    { text: "9", isCorrect: false, rationale: "Incorrect. \\(3^4\\) means \\(3\\times3\\times3\\times3\\), which is not 9." },
+                    { text: "27", isCorrect: false, rationale: "Incorrect. \\(3^4\\) means \\(3\\times3\\times3\\times3\\), which is not 27." },
+                    { text: "81", isCorrect: true, rationale: "Correct! \\(3^4=81\\)." },
+                    { text: "243", isCorrect: false, rationale: "Incorrect. \\(3^4\\) means \\(3\\times3\\times3\\times3\\), which is not 243." }
+                ]
+            },
+            {
+                question: "Simplify \\(4^2\\).",
+                correctAnswer: "16",
+                options: [
+                    { text: "8", isCorrect: false, rationale: "Incorrect. \\(4^2\\) means \\(4\\times4\\), which is not 8." },
+                    { text: "16", isCorrect: true, rationale: "Correct! \\(4^2=16\\)." },
+                    { text: "32", isCorrect: false, rationale: "Incorrect. \\(4^2\\) means \\(4\\times4\\), which is not 32." },
+                    { text: "64", isCorrect: false, rationale: "Incorrect. \\(4^2\\) means \\(4\\times4\\), which is not 64." }
+                ]
+            }
+        ];
+
+        let quizQuestions = [...originalQuizQuestions]; // Copy to allow shuffling
+        let currentQuestionIndex = 0;
+        // Stores the index of the user's selected option for each question.
+        // Null means no answer selected.
+        let userAnswers = new Array(quizQuestions.length).fill(null);
+        // Stores the immediate feedback state for each question.
+        // { isCorrect: boolean, rationale: string } or null.
+        let questionFeedback = new Array(quizQuestions.length).fill(null);
+
+        const questionArea = document.getElementById('question-area');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const retryQuizButton = document.getElementById('retryQuizButton'); // Top retry button (hidden on quiz pages)
+        const resultsSummary = document.getElementById('results-summary');
+        const summaryContent = document.getElementById('summary-content');
+        // Removed printResultsButton as it's no longer in the HTML
+        const downloadPdfButton = document.getElementById('downloadPdfButton'); // New PDF button
+        const retryQuizButtonBottom = document.getElementById('retryQuizButtonBottom'); // Bottom retry button on results page
+        const overallScoreDisplay = document.getElementById('overall-score');
+
+        /**
+         * Loads the current question into the quiz interface.
+         * It renders the question text and its options, handles radio button
+         * selection, and applies any existing feedback highlighting.
+         */
+        function loadQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            let html = `
+                <div class="question-block">
+                    <p class="question-text">Question ${currentQuestionIndex + 1}: ${q.question}</p>
+                    <div class="options-container">
+            `;
+            q.options.forEach((option, index) => {
+                const checked = userAnswers[currentQuestionIndex] === index ? 'checked' : '';
+                html += `
+                    <label data-option-index="${index}">
+                        <input type="radio" name="question${currentQuestionIndex}" value="${index}" ${checked}>
+                        ${option.text}
+                    </label>
+                `;
+            });
+            html += `
+                    </div>
+                    <div id="feedback-area-${currentQuestionIndex}" class="feedback-message hidden"></div>
+                </div>
+            `;
+            questionArea.innerHTML = html;
+
+            // Render LaTeX equations after content is loaded
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise([questionArea]).then(() => {
+                    // After MathJax renders, set up event listeners and apply feedback
+                    setupQuestionInteractivity();
+                });
+            } else {
+                setupQuestionInteractivity();
+            }
+
+            updateNavigationButtons();
+            applyFeedbackToCurrentQuestion(); // Apply feedback if already answered
+        }
+
+        /**
+         * Sets up event listeners for radio buttons and applies highlighting
+         * based on previous user answers and feedback.
+         */
+        function setupQuestionInteractivity() {
+            const radioButtons = questionArea.querySelectorAll(`input[name="question${currentQuestionIndex}"]`);
+            // Add event listeners for radio buttons
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', (event) => {
+                    const selectedOptionIndex = parseInt(event.target.value);
+                    userAnswers[currentQuestionIndex] = selectedOptionIndex;
+                    checkAnswer(selectedOptionIndex); // Provide immediate feedback
+                });
+            });
+
+            // If an answer was already selected, disable radios
+            if (userAnswers[currentQuestionIndex] !== null) {
+                disableRadioButtons();
+            }
+        }
+
+        /**
+         * Disables all radio buttons for the current question.
+         */
+        function disableRadioButtons() {
+            const radioButtons = questionArea.querySelectorAll(`input[name="question${currentQuestionIndex}"]`);
+            radioButtons.forEach(radio => {
+                radio.disabled = true;
+            });
+        }
+
+        /**
+         * Enables all radio buttons for the current question.
+         */
+        function enableRadioButtons() {
+            const radioButtons = questionArea.querySelectorAll(`input[name="question${currentQuestionIndex}"]`);
+            radioButtons.forEach(radio => {
+                radio.disabled = false;
+            });
+        }
+
+        /**
+         * Checks the selected answer against the correct answer and displays immediate feedback.
+         * @param {number} selectedOptionIndex - The index of the option selected by the user.
+         */
+        function checkAnswer(selectedOptionIndex) {
+            const q = quizQuestions[currentQuestionIndex];
+            const selectedOption = q.options[selectedOptionIndex];
+            const isCorrect = selectedOption.isCorrect;
+            const feedbackArea = document.getElementById(`feedback-area-${currentQuestionIndex}`);
+            const optionsLabels = questionArea.querySelectorAll('.options-container label');
+
+            // Store feedback for later display/printing
+            questionFeedback[currentQuestionIndex] = {
+                isCorrect: isCorrect,
+                rationale: selectedOption.rationale || 'No rationale available.'
+            };
+
+            // Remove previous highlights
+            optionsLabels.forEach(label => {
+                label.classList.remove('selected', 'correct-highlight', 'incorrect-highlight');
+            });
+
+            // Highlight selected answer
+            optionsLabels[selectedOptionIndex].classList.add('selected');
+
+            // Display feedback message
+            feedbackArea.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+            if (isCorrect) {
+                feedbackArea.classList.add('feedback-correct');
+                feedbackArea.innerHTML = `Correct! <span class="feedback-rationale">${selectedOption.rationale}</span>`;
+                optionsLabels[selectedOptionIndex].classList.add('correct-highlight');
+            } else {
+                feedbackArea.classList.add('feedback-incorrect');
+                feedbackArea.innerHTML = `Incorrect. <span class="feedback-rationale">${selectedOption.rationale}</span>`;
+                optionsLabels[selectedOptionIndex].classList.add('incorrect-highlight');
+
+                // Highlight the correct answer
+                const correctOptionIndex = q.options.findIndex(opt => opt.isCorrect);
+                if (correctOptionIndex !== -1) {
+                    optionsLabels[correctOptionIndex].classList.add('correct-highlight');
+                }
+            }
+            disableRadioButtons(); // Disable further changes for this question
+
+            // Re-render MathJax in the feedback area specifically
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise([feedbackArea]);
+            }
+        }
+
+        /**
+         * Applies feedback highlighting and message when navigating back to a previously answered question.
+         */
+        function applyFeedbackToCurrentQuestion() {
+            const feedback = questionFeedback[currentQuestionIndex];
+            const feedbackArea = document.getElementById(`feedback-area-${currentQuestionIndex}`);
+            const optionsLabels = questionArea.querySelectorAll('.options-container label');
+            const userAnswerIndex = userAnswers[currentQuestionIndex];
+
+            // Clear previous highlights
+            optionsLabels.forEach(label => {
+                label.classList.remove('selected', 'correct-highlight', 'incorrect-highlight');
+            });
+
+            if (feedback) {
+                feedbackArea.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+                if (feedback.isCorrect) {
+                    feedbackArea.classList.add('feedback-correct');
+                    feedbackArea.innerHTML = `Correct! <span class="feedback-rationale">${feedback.rationale}</span>`;
+                    if (userAnswerIndex !== null) {
+                         optionsLabels[userAnswerIndex].classList.add('selected', 'correct-highlight');
+                    }
+                } else {
+                    feedbackArea.classList.add('feedback-incorrect');
+                    feedbackArea.innerHTML = `Incorrect. <span class="feedback-rationale">${feedback.rationale}</span>`;
+                    if (userAnswerIndex !== null) {
+                        optionsLabels[userAnswerIndex].classList.add('selected', 'incorrect-highlight');
+                    }
+                    // Highlight the correct answer
+                    const q = quizQuestions[currentQuestionIndex];
+                    const correctOptionIndex = q.options.findIndex(opt => opt.isCorrect);
+                    if (correctOptionIndex !== -1) {
+                        optionsLabels[correctOptionIndex].classList.add('correct-highlight');
+                    }
+                }
+                disableRadioButtons(); // Keep radios disabled if already answered
+                // Re-render MathJax in the feedback area specifically
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.typesetPromise([feedbackArea]);
+                }
+            } else {
+                feedbackArea.classList.add('hidden'); // Hide feedback if not answered
+                enableRadioButtons(); // Enable radios if not answered
+            }
+
+            // If an answer was previously selected, ensure its radio button is checked
+            if (userAnswerIndex !== null) {
+                const radio = questionArea.querySelector(`input[name="question${currentQuestionIndex}"][value="${userAnswerIndex}"]`);
+                if (radio) radio.checked = true;
+            }
+        }
+
+
+        /**
+         * Updates the visibility and disabled state of navigation buttons.
+         */
+        function updateNavigationButtons() {
+            // Always hide results summary on question pages
+            resultsSummary.style.display = 'none';
+
+            // Manage visibility of navigation buttons
+            if (currentQuestionIndex === quizQuestions.length - 1) {
+                // On the last question, show Next and Previous
+                nextButton.classList.remove('hidden');
+                prevButton.classList.remove('hidden');
+            } else {
+                // On other questions, show Next and Previous
+                nextButton.classList.remove('hidden');
+                prevButton.classList.remove('hidden');
+            }
+            prevButton.disabled = currentQuestionIndex === 0; // Disable previous on first question
+
+            // Ensure top retry button is hidden on question pages
+            retryQuizButton.classList.add('hidden');
+        }
+
+        /**
+         * Navigates to the next question or displays results if on the last question.
+         */
+        function showNextQuestion() {
+            // Only proceed if the current question has been answered
+            if (userAnswers[currentQuestionIndex] === null) {
+                // console.log("Please select an answer before proceeding."); // For debugging
+                return; // Do not proceed if not answered
+            }
+
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                // This is the last question and it has been answered. Show results.
+                questionArea.classList.add('hidden');
+                document.getElementById('navigation-buttons').classList.add('hidden'); // Hide navigation buttons container
+                
+                // Explicitly hide prev and next buttons on the results page
+                prevButton.classList.add('hidden');
+                nextButton.classList.add('hidden');
+
+                displayResults();
+            }
+        }
+
+        /**
+         * Navigates to the previous question.
+         */
+        function showPreviousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        /**
+         * Shuffles an array in place (Fisher-Yates algorithm).
+         * @param {Array} array - The array to shuffle.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        /**
+         * Resets the quiz to its initial state and randomizes question order.
+         */
+        function retryQuiz() {
+            shuffleArray(quizQuestions); // Randomize questions
+            currentQuestionIndex = 0;
+            userAnswers.fill(null); // Clear all user answers
+            questionFeedback.fill(null); // Clear all feedback
+            
+            // Ensure quiz elements are visible and results are hidden
+            questionArea.classList.remove('hidden');
+            document.getElementById('navigation-buttons').classList.remove('hidden');
+            resultsSummary.style.display = 'none';
+            
+            // Reset button visibility for the start of a new quiz
+            nextButton.classList.remove('hidden');
+            prevButton.classList.remove('hidden');
+            prevButton.disabled = true; // Disable prev on first question
+            retryQuizButton.classList.add('hidden'); // Top retry
+            // Removed printResultsButton.classList.add('hidden');
+            downloadPdfButton.classList.add('hidden'); // Hide PDF button
+            retryQuizButtonBottom.classList.add('hidden'); // Bottom retry
+
+            loadQuestion(); // Load the first (now randomized) question
+        }
+
+        /**
+         * Displays the final quiz results summary.
+         */
+        function displayResults() {
+            let correctCount = 0;
+            quizQuestions.forEach((q, qIndex) => {
+                const feedback = questionFeedback[qIndex];
+                if (feedback && feedback.isCorrect) {
+                    correctCount++;
+                }
+            });
+
+            overallScoreDisplay.textContent = `You got ${correctCount} out of ${quizQuestions.length} questions correct!`;
+
+            let resultsHtml = '';
+            quizQuestions.forEach((q, qIndex) => {
+                const userAnswerIndex = userAnswers[qIndex];
+                const selectedOption = userAnswerIndex !== null ? q.options[userAnswerIndex] : null;
+                const userAnswerText = selectedOption ? selectedOption.text : 'No Answer';
+                const feedback = questionFeedback[qIndex];
+                const isCorrect = feedback ? feedback.isCorrect : false;
+                const correctAnswerText = q.correctAnswer;
+                const rationale = feedback ? feedback.rationale : (q.options.find(opt => opt.text === q.correctAnswer)?.rationale || 'No rationale available.');
+
+                resultsHtml += `
+                    <div class="result-item">
+                        <p class="result-question">Question ${qIndex + 1}: ${q.question}</p>
+                        <p class="user-answer">Your Answer: ${userAnswerText} <span class="${isCorrect ? 'correct' : 'incorrect'}">(${isCorrect ? 'Correct' : 'Incorrect'})</span></p>
+                        <p class="correct-answer">Correct Answer: ${correctAnswerText}</p>
+                        <p class="rationale">Rationale: ${rationale}</p>
+                    </div>
+                `;
+            });
+            summaryContent.innerHTML = resultsHtml;
+
+            // Render LaTeX in results summary
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise([resultsSummary]); // Typeset the entire summary div
+            }
+
+            // Show print and retry buttons on the results page
+            // Removed printResultsButton.classList.add('hidden');
+            downloadPdfButton.classList.remove('hidden'); // Show PDF button
+            retryQuizButtonBottom.classList.remove('hidden');
+            resultsSummary.style.display = 'block'; // Ensure summary is visible
+        }
+
+        /**
+         * Triggers the browser's print functionality for the quiz results.
+         */
+        // Removed printResults function
+
+        /**
+         * Downloads the quiz results as a PDF.
+         */
+        async function downloadPdfResults() {
+            // Temporarily hide buttons that shouldn't be in the PDF
+            const buttonsToHide = document.querySelectorAll('.print-button-container button');
+            buttonsToHide.forEach(button => button.style.display = 'none');
+
+            // Ensure MathJax has rendered everything before capturing
+            if (typeof MathJax !== 'undefined') {
+                await MathJax.typesetPromise([resultsSummary]);
+            }
+
+            html2canvas(resultsSummary, {
+                scale: 2, // Increase scale for better resolution in PDF
+                useCORS: true // Important for images if any, though none here
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' size
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save('Law_of_Indices_Quiz_Results.pdf');
+
+                // Show buttons again after PDF generation
+                buttonsToHide.forEach(button => button.style.display = '');
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                // Ensure buttons are visible even if PDF generation fails
+                buttonsToHide.forEach(button => button.style.display = '');
+            });
+        }
+
+        // Event Listeners
+        prevButton.addEventListener('click', showPreviousQuestion);
+        nextButton.addEventListener('click', showNextQuestion);
+        retryQuizButton.addEventListener('click', retryQuiz); // Top retry button
+        retryQuizButtonBottom.addEventListener('click', retryQuiz); // Bottom retry button
+        // Removed printResultsButton.addEventListener('click', printResults);
+        downloadPdfButton.addEventListener('click', downloadPdfResults); // Event listener for PDF button
+
+        // Initial load
+        window.onload = function() {
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
